@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Dashboard - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <span id="programName" style="font-weight: 700; font-size: 1.25rem;">Exam <span
+                    style="color: var(--primary);">Portal</span></span>
+        </div>
+        <div class="nav-links">
+            <span id="userName" style="margin-right: 1.5rem; color: var(--text-secondary);"></span>
+            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1.2rem;">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header style="margin-bottom: 3rem;">
+            <h1>Welcome to Your Exam Portal</h1>
+            <p>Ready to start your 60-minute subject examination?</p>
+        </header>
+
+        <div class="glass" style="padding: 3rem; text-align: center; max-width: 800px; margin: 0 auto;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Final Examination</h2>
+            <div style="display: flex; gap: 2rem; justify-content: center; margin: 2rem 0;">
+                <div>
+                    <div style="font-weight: 700; color: var(--accent-blue);">60</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">QUESTIONS</div>
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: var(--accent-blue);">60</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">MINUTES</div>
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: var(--accent-blue);">60</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">MARKS</div>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+                Please ensure you have a stable internet connection. The exam will auto-submit once the timer reaches
+                zero.
+            </p>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                <button onclick="checkAndStart()" class="btn btn-primary"
+                    style="padding: 1.5rem 4rem; font-size: 1.25rem;">Start Test Now</button>
+
+                <a href="student_ai.html" class="btn btn-outline"
+                    style="padding: 1.5rem 3rem; font-size: 1.25rem; font-weight: 700; background: var(--text-primary); color: white; border: none;">✨
+                    AI Study Agent</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user || (user.role !== 'student' && user.role !== 'teacher')) window.location.href = 'login.html';
+
+        document.getElementById('userName').textContent = `Hello, ${user.name}`;
+
+        const programNameEl = document.getElementById('programName');
+        if (user.role === 'teacher') {
+            programNameEl.innerHTML = 'STEM Program <span style="color: var(--primary);">for Teachers</span>';
+        } else {
+            programNameEl.innerHTML = 'ASA Program <span style="color: var(--primary);">for Students</span>';
+        }
+
+        function checkAndStart() {
+            const allQuestions = JSON.parse(localStorage.getItem('questions') || '[]');
+            const relevantCategory = user.role === 'teacher' ? 'STEM' : 'ASA';
+            const questions = allQuestions.filter(q => q.category === relevantCategory);
+
+            if (questions.length < 1) {
+                alert('No questions available for your program in the database yet. Please contact your administrator.');
+            } else {
+                if (confirm('Are you sure you want to start the 60-minute test?')) {
+                    window.location.href = 'test.html';
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>

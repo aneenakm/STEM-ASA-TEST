@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Question Generator - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        .upload-area {
+            border: 2px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .loader {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(134, 203, 23, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            text-align: left;
+        }
+
+        .option-item {
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid transparent;
+        }
+
+        .option-item.correct {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+        }
+
+        select.form-control {
+            appearance: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <a href="admin_dashboard.html"
+                style="color: var(--text-primary); text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+        </div>
+        <div class="nav-links">
+            <span style="font-weight: 700; color: var(--primary);">✨ Admin AI Generator</span>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 800px;">
+        <div class="glass" style="padding: 3rem; text-align: center; margin-top: 2rem;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Upload Study Materials</h1>
+            <p style="margin-bottom: 2.5rem; color: var(--text-secondary);">Upload a curriculum PDF or paste study
+                concepts. The AI will automatically extract high-quality exam questions and assign them directly to the
+                chosen program.</p>
+
+            <div id="inputSection">
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; text-align: left;">
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Target Program for
+                            Questions:</label>
+                        <select id="targetCategory" class="form-control" style="cursor: pointer;">
+                            <option value="STEM">STEM (Teachers)</option>
+                            <option value="ASA">ASA (Students)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">AI Extraction
+                            Mode:</label>
+                        <select id="aiMode" class="form-control" style="cursor: pointer;">
+                            <option value="generate">Extract Concepts & Generate NEW Questions</option>
+                            <option value="parse">Parse Existing Question Paper</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📑</div>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Click or drag a PDF File</h3>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">Only analyzing the EXACT contents of
+                        what you upload.</p>
+                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.txt">
+                </div>
+
+                <div
+                    style="margin: 2rem 0; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em;">
+                    OR PASTE TEXT</div>
+
+                <textarea class="form-control" id="textContent" rows="5"
+                    placeholder="Paste study materials, transcripts, or notes to analyze here..."
+                    style="resize: vertical;"></textarea>
+
+                <button class="btn btn-primary"
+                    style="width: 100%; margin-top: 2rem; padding: 1.2rem; font-size: 1.1rem;"
+                    onclick="startGeneration()">
+                    ✨ Analyze & Generate Questions
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <h3 id="loadingText" style="color: var(--text-primary);">Scanning document...</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Building high-quality
+                    questions for the examination repository.</p>
+            </div>
+
+            <!-- Results State -->
+            <div id="resultsSection" style="display: none; animation: fadeIn 0.5s ease-out; margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 id="resultTitle" style="color: var(--text-primary);"></h2>
+                    <button class="btn btn-outline" onclick="resetGenerator()"
+                        style="padding: 0.5rem 1rem; font-size: 0.85rem;">Start Over</button>
+                </div>
+
+                <div id="resultsContainer"></div>
+
+                <button class="btn btn-primary" id="saveBtn"
+                    style="margin-top: 2rem; width: 100%; padding: 1rem; font-size: 1.1rem;"
+                    onclick="saveToRepository()">Save Questions to Repository</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
+
+        let extractedText = "";
+        let generatedQuestions = [];
+        let selectedCategory = "STEM";
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        let selectedFile = null;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault(); e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files.length) handleFile(dt.files[0]);
+        });
+
+        fileInput.addEventListener('change', function () {
+            if (this.files.length) handleFile(this.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            dropZone.innerHTML = `<div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                                  <h3 style="margin-bottom: 0.5rem; color: var(--primary);">${file.name}</h3>
+                                  <p style="font-size: 0.875rem; color: var(--text-secondary);">${(file.size / 1024).toFixed(1)} KB uploaded</p>`;
+        }
+
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+
+                let lastY = -1;
+                let pageText = "";
+                for (let item of textContent.items) {
+                    if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > 5) {
+                        pageText += "\n";
+                    }
+                    pageText += item.str + " ";
+                    lastY = item.transform[5];
+                }
+                fullText += pageText + "\n\n";
+            }
+            return fullText;
+        }
+
+        async function startGeneration() {
+            const pastedText = document.getElementById('textContent').value;
+            selectedCategory = document.getElementById('targetCategory').value;
+
+            if (!pastedText && !selectedFile) {
+                alert('Please upload a PDF document or paste some text first.');
+                return;
+            }
+
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('loader').style.display = 'flex';
+
+            try {
+                if (selectedFile) {
+                    if (selectedFile.type === "application/pdf") {
+                        document.getElementById('loadingText').textContent = "Reading PDF contents...";
+                        extractedText = await extractTextFromPDF(selectedFile);
+                    } else {
+                        extractedText = await selectedFile.text();
+                    }
+                } else {
+                    extractedText = pastedText;
+                }
+
+                if (extractedText.trim().length < 20) {
+                    alert("Not enough text found in the document to generate questions.");
+                    resetGenerator();
+                    return;
+                }
+
+                document.getElementById('loadingText').textContent = "Analyzing structure & phrasing...";
+                setTimeout(() => {
+                    const mode = document.getElementById('aiMode').value;
+                    if (mode === 'parse') {
+                        parseExistingQuestions(extractedText);
+                    } else {
+                        generateMaterial(extractedText);
+                    }
+                }, 1500);
+
+            } catch (err) {
+                alert("Error extracting text: " + err.message);
+                resetGenerator();
+            }
+        }
+
+        function cleanSentence(s) {
+            return s.replace(/\s+/g, ' ').trim();
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function parseExistingQuestions(text) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultTitle').textContent = `Imported Exam Questions for ${selectedCategory}`;
+            generatedQuestions = [];
+
+            // Split the text into blocks wherever we see "1.", "2.", "3." etc.
+            const rawBlocks = text.split(/(?=\s*(?:Q\s*)?\d+[.)])/i).filter(b => b.trim().length > 10);
+
+            rawBlocks.forEach(block => {
+                // Find options A., B., C., D.
+                const optionRegex = /(?:\n|\s|^)([A-E][.)])\s+/ig;
+                let optMarks = [];
+                let match;
+                while ((match = optionRegex.exec(block)) !== null) {
+                    optMarks.push({ char: match[1].toUpperCase().charAt(0), index: match.index });
+                }
+
+                if (optMarks.length < 2) return; // not a real question block
+
+                // Extract Question text before first option
+                let qText = block.substring(0, optMarks[0].index).replace(/^(?:\s*|Q\s*)\d+[.)]\s*/i, '').trim();
+
+                let options = [];
+                for (let i = 0; i < optMarks.length; i++) {
+                    let actualMatchStr = block.substring(optMarks[i].index, optMarks[i].index + 10).match(/(?:\n|\s|^)([A-E][.)])\s+/i);
+                    let actualLen = actualMatchStr ? actualMatchStr[0].length : 3;
+                    let start = optMarks[i].index + actualLen;
+
+                    let end = (i < optMarks.length - 1) ? optMarks[i + 1].index : block.length;
+                    let optText = block.substring(start, end).trim();
+                    options.push({ letter: optMarks[i].char, text: optText });
+                }
+
+                // Look for Answer key in block
+                let correctIdx = 0;
+                let ansRegex = /(?:Answer|Ans|Correct)[\s*:]*([A-E])/i;
+                let ansMatch = block.match(ansRegex);
+
+                if (ansMatch) {
+                    let letter = ansMatch[1].toUpperCase();
+                    correctIdx = options.findIndex(o => o.letter === letter);
+                    if (correctIdx === -1) correctIdx = 0;
+                    options[options.length - 1].text = options[options.length - 1].text.replace(ansRegex, '').trim();
+                } else {
+                    let idx = options.findIndex(o => o.text.toLowerCase().includes('(correct)') || o.text.includes('*') || o.text.toLowerCase().includes('answer:'));
+                    if (idx !== -1) {
+                        correctIdx = idx;
+                        options[idx].text = options[idx].text.replace(/\(correct\)/ig, '').replace(/\*/g, '').replace(/answer:.*/ig, '').trim();
+                    }
+                }
+
+                let cleanOptions = options.map(o => o.text);
+
+                if (qText.length > 5 && cleanOptions.length >= 2) {
+                    generatedQuestions.push({
+                        text: qText,
+                        options: cleanOptions,
+                        correct: Math.max(0, correctIdx),
+                        category: selectedCategory,
+                        type: 'mcq'
+                    });
+                }
+            });
+
+            if (generatedQuestions.length === 0) {
+                container.innerHTML = `<p style="color: var(--error);">Could not clearly detect formatted questions. Make sure the document contains numbered questions (1.) and lettered options (A., B., C., D.).</p>`;
+                document.getElementById('saveBtn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('saveBtn').style.display = 'block';
+
+            generatedQuestions.forEach((q, index) => {
+                let html = `
+                    <div class="result-item">
+                        <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); line-height: 1.5;">${index + 1}. ${q.text}</div>
+                        <div style="display: grid; gap: 0.5rem; font-size: 0.95rem;">
+                `;
+
+                q.options.forEach((opt, optIndex) => {
+                    const isCorrect = optIndex === q.correct;
+                    html += `<div class="option-item ${isCorrect ? 'correct' : ''}">
+                                ${String.fromCharCode(65 + optIndex)}. ${opt} ${isCorrect ? '✅ (Correct)' : ''}
+                             </div>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function generateMaterial(text) {
+            // Split into sentences roughly
+            let sentences = (text.match(/[^.!?]+[.!?]+/g) || []).map(cleanSentence).filter(s => s.length > 30 && s.length < 300);
+
+            if (sentences.length < 5) {
+                sentences = text.split('\n').map(cleanSentence).filter(s => s.length > 30);
+            }
+
+            // Filter out junk sentences
+            sentences = sentences.filter(s => {
+                const lower = s.toLowerCase();
+                const numCount = (s.match(/\d/g) || []).length;
+                if (numCount > 5) return false;
+                if (lower.startsWith('page ') || lower.startsWith('figure ') || lower.startsWith('table ') || lower.startsWith('chapter ')) return false;
+                if (lower.includes('...')) return false; // TOC
+                return true;
+            });
+
+            // Gather all big words as distractors for questions
+            const allWords = text.split(/[^\w]+/).filter(w => w.length > 5);
+            const distractorsPool = [...new Set(allWords)];
+
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            document.getElementById('resultTitle').textContent = `Generated Exam Questions for ${selectedCategory}`;
+
+            const scorableSentences = sentences.map(sentence => {
+                const words = sentence.split(' ');
+                let bestWord = "";
+                let targetIndex = -1;
+                let bestScore = -1;
+                const importantEndings = ['tion', 'ment', 'ity', 'logy', 'ism', 'ics', 'ance', 'ence', 'ness', 'ing', 'ive'];
+
+                words.forEach((w, i) => {
+                    if (i === 0 || i === words.length - 1) return;
+                    let cleanW = w.replace(/[^a-zA-Z]/g, "");
+                    if (cleanW.length < 5) return;
+
+                    let score = cleanW.length;
+                    if (cleanW[0] === cleanW[0].toUpperCase()) score += 15;
+                    importantEndings.forEach(end => {
+                        if (cleanW.toLowerCase().endsWith(end)) score += 20;
+                    });
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestWord = cleanW; // the clean answer
+                        targetIndex = i;
+                    }
+                });
+
+                return { sentence, bestWord, targetIndex, bestScore, words };
+            }).filter(s => s.bestScore >= 12);
+
+            const selectedSentences = shuffle(scorableSentences).slice(0, 10);
+            generatedQuestions = [];
+
+            if (selectedSentences.length === 0) {
+                container.innerHTML = `<p style="color: var(--text-secondary);">Could not extract sufficient text to generate questions from this document. Please verify the content.</p>`;
+                document.getElementById('saveBtn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('saveBtn').style.display = 'block';
+
+            selectedSentences.forEach((item, index) => {
+                let { bestWord, targetIndex, words } = item;
+
+                const originalWordWithPunctuation = words[targetIndex];
+                words[targetIndex] = "________" + originalWordWithPunctuation.replace(/[a-zA-Z]/g, ""); // keep punctuation intact
+                const questionText = words.join(' ');
+
+                // Pick tricky distractors
+                let sameSuffix = distractorsPool.filter(w =>
+                    w.toLowerCase() !== bestWord.toLowerCase() &&
+                    w.slice(-3) === bestWord.slice(-3) &&
+                    w.length > 4
+                );
+
+                let currentDistractors = [];
+                if (sameSuffix.length >= 3) {
+                    currentDistractors = shuffle(sameSuffix).slice(0, 3);
+                } else {
+                    currentDistractors = shuffle(distractorsPool.filter(w => w.toLowerCase() !== bestWord.toLowerCase())).slice(0, 3);
+                }
+
+                let options = [bestWord, ...currentDistractors];
+                options = shuffle(options);
+
+                const answerIndex = options.indexOf(bestWord);
+
+                // Add to array for saving to repository
+                generatedQuestions.push({
+                    text: questionText,
+                    options: options,
+                    correct: answerIndex,
+                    category: selectedCategory, // Save it directly to chosen category
+                    type: 'mcq'
+                });
+
+                let html = `
+                    <div class="result-item">
+                        <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); line-height: 1.5;">${index + 1}. ${questionText}</div>
+                        <div style="display: grid; gap: 0.5rem; font-size: 0.95rem;">
+                `;
+
+                options.forEach((opt, optIndex) => {
+                    const isCorrect = optIndex === answerIndex;
+                    html += `<div class="option-item ${isCorrect ? 'correct' : ''}">
+                                ${String.fromCharCode(65 + optIndex)}. ${opt} ${isCorrect ? '✅ (Correct)' : ''}
+                             </div>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function resetGenerator() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('textContent').value = '';
+            document.getElementById('fileInput').value = '';
+            selectedFile = null;
+            extractedText = "";
+            generatedQuestions = [];
+            dropZone.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📑</div>
+                <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Click or drag a PDF File</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">Only analyzing the EXACT contents of what you upload.</p>
+            `;
+        }
+
+        function saveToRepository() {
+            if (generatedQuestions.length === 0) return;
+
+            const existingQuestions = JSON.parse(localStorage.getItem('questions') || '[]');
+            const combined = [...existingQuestions, ...generatedQuestions];
+            localStorage.setItem('questions', JSON.stringify(combined));
+
+            alert(`${generatedQuestions.length} questions successfully generated and saved to the ${selectedCategory} repository!`);
+            window.location.href = 'admin_dashboard.html';
+        }
+    </script>
+</body>
+
+</html>

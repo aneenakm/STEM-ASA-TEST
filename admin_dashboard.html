@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <span style="font-weight: 800; font-size: 1.25rem;">ADMIN <span
+                    style="color: var(--primary);">CONTROL</span></span>
+        </div>
+        <div class="nav-links">
+            <span id="adminName" style="margin-right: 1.5rem; color: var(--text-secondary);"></span>
+            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1.2rem;">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1>System Overview</h1>
+                <p>Monitor performance, manage users, and curate questions.</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="ai_generator.html" class="btn btn-primary"
+                    style="background: var(--text-primary); color: white;">✨ AI Generator</a>
+                <a href="add_question.html" class="btn btn-primary">+ New Question</a>
+            </div>
+        </header>
+
+        <!-- System Stats -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="glass stat-card">
+                <span class="stat-value" id="statUsers">0</span>
+                <span class="stat-label">Total Users</span>
+            </div>
+            <div class="glass stat-card">
+                <span class="stat-value" id="statQuestions">0</span>
+                <span class="stat-label">Total Questions</span>
+            </div>
+            <div class="glass stat-card">
+                <span class="stat-value" id="statAvgScore">0%</span>
+                <span class="stat-label">Avg. Score</span>
+            </div>
+            <div class="glass stat-card" style="border-color: var(--success);">
+                <span class="stat-value" id="statPassRate" style="color: var(--success);">0%</span>
+                <span class="stat-label">Pass Rate</span>
+            </div>
+        </div>
+
+        <!-- Admin Tabs -->
+        <div style="margin-top: 4rem;">
+            <div style="display: flex; gap: 2rem; border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
+                <button onclick="showTab('users')" class="tab-btn active" id="tabUsers">User Management</button>
+                <button onclick="showTab('questions')" class="tab-btn" id="tabQuestions">Question Repository</button>
+                <button onclick="showTab('results')" class="tab-btn" id="tabResults">Exam Performance</button>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersSection" class="tab-content">
+                <div id="usersList" style="display: grid; gap: 1rem;"></div>
+            </div>
+
+            <!-- Questions Tab -->
+            <div id="questionsSection" class="tab-content" style="display: none;">
+                <div id="questionsList" style="display: grid; gap: 1rem;"></div>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="resultsSection" class="tab-content" style="display: none;">
+                <div id="resultsList" style="display: grid; gap: 1rem;"></div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 1rem 0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .delete-btn {
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+    </style>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
+        document.getElementById('adminName').textContent = `Admin: ${currentUser.name}`;
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab + 'Section').style.display = 'block';
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            renderData(tab);
+        }
+
+        function renderData(tab) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const questions = JSON.parse(localStorage.getItem('questions') || '[]');
+            const results = JSON.parse(localStorage.getItem('results') || '[]'); // Assuming we store global results
+
+            if (tab === 'users') {
+                document.getElementById('usersList').innerHTML = users.map(u => `
+                    <div class="glass" style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-weight: 600;">${u.name}</span>
+                            <span style="margin-left: 1rem; color: var(--text-secondary); font-size: 0.875rem;">${u.email}</span>
+                            <span class="glass" style="margin-left: 1rem; padding: 0.2rem 0.5rem; font-size: 0.7rem; text-transform: uppercase;">${u.role}</span>
+                        </div>
+                        <button onclick="deleteUser('${u.email}')" class="btn delete-btn action-btn">Delete Account</button>
+                    </div>
+                `).join('') || '<p>No users registered.</p>';
+            }
+
+            if (tab === 'questions') {
+                document.getElementById('questionsList').innerHTML = questions.map((q, i) => `
+                    <div class="glass" style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1; margin-right: 2rem;">
+                            <div style="font-weight: 600;">${q.text}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Type: ${q.type.toUpperCase()} | Cat: ${q.category || 'N/A'} | Correct: ${q.correct}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="editQuestion(${q.id})" class="btn btn-outline action-btn">Edit</button>
+                            <button onclick="deleteQuestion(${q.id})" class="btn delete-btn action-btn">Delete</button>
+                        </div>
+                    </div>
+                `).join('') || '<p>No questions found.</p>';
+            }
+
+            if (tab === 'results') {
+                // For demo, let's assume we store results in a global 'allResults' array
+                const allResults = JSON.parse(localStorage.getItem('allResults') || '[]');
+                document.getElementById('resultsList').innerHTML = allResults.map(r => `
+                    <div class="glass" style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600;">${r.studentName}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${r.course} | ${r.date}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: ${r.score >= 24 ? 'var(--success)' : 'var(--error)'}">${r.score}/60</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${r.percentage}%</div>
+                        </div>
+                    </div>
+                `).join('') || '<p>No exam results recorded yet.</p>';
+            }
+
+            // Update Stats
+            document.getElementById('statUsers').textContent = users.length;
+            document.getElementById('statQuestions').textContent = questions.length;
+
+            const allResults = JSON.parse(localStorage.getItem('allResults') || '[]');
+            if (allResults.length > 0) {
+                const avg = allResults.reduce((acc, r) => acc + parseFloat(r.percentage), 0) / allResults.length;
+                document.getElementById('statAvgScore').textContent = avg.toFixed(1) + '%';
+                const passCount = allResults.filter(r => r.score >= 24).length;
+                document.getElementById('statPassRate').textContent = ((passCount / allResults.length) * 100).toFixed(1) + '%';
+            }
+        }
+
+        function deleteUser(email) {
+            if (confirm('Permanently delete this user?')) {
+                let users = JSON.parse(localStorage.getItem('users') || '[]');
+                users = users.filter(u => u.email !== email);
+                localStorage.setItem('users', JSON.stringify(users));
+                renderData('users');
+            }
+        }
+
+        function deleteQuestion(id) {
+            if (confirm('Permanently delete this question?')) {
+                let questions = JSON.parse(localStorage.getItem('questions') || '[]');
+                questions = questions.filter(q => q.id !== id);
+                localStorage.setItem('questions', JSON.stringify(questions));
+                renderData('questions');
+            }
+        }
+
+        function editQuestion(id) {
+            localStorage.setItem('editQuestionId', id);
+            window.location.href = 'add_question.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        renderData('users');
+    </script>
+</body>
+
+</html>

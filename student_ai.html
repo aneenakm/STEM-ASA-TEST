@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Agent - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        .upload-area {
+            border: 2px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .loader {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(134, 203, 23, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .type-btn.active {
+            background: var(--text-primary);
+            color: white;
+            border-color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .flashcard {
+            perspective: 1000px;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            min-height: 150px;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 16px;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: var(--bg-dark);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            text-align: left;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .option-btn.correct {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <a href="dashboard.html" style="color: var(--text-primary); text-decoration: none; font-weight: 600;">← Back
+                to Dashboard</a>
+        </div>
+        <div class="nav-links">
+            <span style="font-weight: 700; color: var(--primary);">✨ AI Study Agent</span>
+            <span id="userName" style="margin-left: 1.5rem; color: var(--text-secondary);"></span>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 800px;">
+        <div class="glass" style="padding: 3rem; text-align: center; margin-top: 2rem;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">AI Document Analyzer</h1>
+            <p style="margin-bottom: 2.5rem; color: var(--text-secondary);">Upload your PDF or enter text. The AI will
+                read exactly what you uploaded and instantly generate study materials based entirely on the contents of
+                your own document!</p>
+
+            <div class="type-selector">
+                <div class="type-btn active" onclick="selectType('flashcards')" id="btn-flashcards">🗂️ Generate
+                    Flashcards</div>
+                <div class="type-btn" onclick="selectType('questions')" id="btn-questions">📝 Generate Practice
+                    Questions</div>
+            </div>
+
+            <div id="inputSection">
+                <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📑</div>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Click or drag a PDF File</h3>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">Only analyzing the EXACT contents of
+                        what you upload.</p>
+                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.txt">
+                </div>
+
+                <div
+                    style="margin: 2rem 0; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em;">
+                    OR PASTE TEXT</div>
+
+                <textarea class="form-control" id="textContent" rows="5" placeholder="Paste your study material here..."
+                    style="resize: vertical;"></textarea>
+
+                <button class="btn btn-primary"
+                    style="width: 100%; margin-top: 2rem; padding: 1.2rem; font-size: 1.1rem;"
+                    onclick="startGeneration()">
+                    ✨ Analyze & Generate
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <h3 id="loadingText" style="color: var(--text-primary);">Scanning document...</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Building questions and
+                    flashcards directly from your text.</p>
+            </div>
+
+            <!-- Results State -->
+            <div id="resultsSection" style="display: none; animation: fadeIn 0.5s ease-out; margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 id="resultTitle" style="color: var(--text-primary);"></h2>
+                    <button class="btn btn-outline" onclick="resetGenerator()"
+                        style="padding: 0.5rem 1rem; font-size: 0.85rem;">Start Over</button>
+                </div>
+
+                <div id="resultsContainer"></div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) window.location.href = 'login.html';
+        document.getElementById('userName').textContent = user.name;
+
+        let currentType = 'flashcards';
+        let extractedText = "";
+
+        function selectType(type) {
+            currentType = type;
+            document.getElementById('btn-questions').classList.remove('active');
+            document.getElementById('btn-flashcards').classList.remove('active');
+            document.getElementById('btn-' + type).classList.add('active');
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        let selectedFile = null;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault(); e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files.length) handleFile(dt.files[0]);
+        });
+
+        fileInput.addEventListener('change', function () {
+            if (this.files.length) handleFile(this.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            dropZone.innerHTML = `<div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                                  <h3 style="margin-bottom: 0.5rem; color: var(--primary);">${file.name}</h3>
+                                  <p style="font-size: 0.875rem; color: var(--text-secondary);">${(file.size / 1024).toFixed(1)} KB uploaded</p>`;
+        }
+
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(s => s.str).join(" ") + " ";
+            }
+            return fullText;
+        }
+
+        async function startGeneration() {
+            const pastedText = document.getElementById('textContent').value;
+
+            if (!pastedText && !selectedFile) {
+                alert('Please upload a PDF document or paste some text first.');
+                return;
+            }
+
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('loader').style.display = 'flex';
+
+            try {
+                if (selectedFile) {
+                    if (selectedFile.type === "application/pdf") {
+                        document.getElementById('loadingText').textContent = "Reading PDF contents...";
+                        extractedText = await extractTextFromPDF(selectedFile);
+                    } else {
+                        extractedText = await selectedFile.text();
+                    }
+                } else {
+                    extractedText = pastedText;
+                }
+
+                if (extractedText.trim().length < 20) {
+                    alert("Not enough text found in the document to generate study material.");
+                    resetGenerator();
+                    return;
+                }
+
+                document.getElementById('loadingText').textContent = "Analyzing structure & phrasing...";
+                setTimeout(() => {
+                    generateMaterial(extractedText);
+                }, 1500);
+
+            } catch (err) {
+                alert("Error extracting text: " + err.message);
+                resetGenerator();
+            }
+        }
+
+        function cleanSentence(s) {
+            return s.replace(/\s+/g, ' ').trim();
+        }
+
+        // Shuffle utility
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function generateMaterial(text) {
+            // Split into sentences roughly
+            let sentences = (text.match(/[^.!?]+[.!?]+/g) || []).map(cleanSentence).filter(s => s.length > 30 && s.length < 300);
+
+            // If barely any sentences found, fallback to generic chunking
+            if (sentences.length < 5) {
+                sentences = text.split('\n').map(cleanSentence).filter(s => s.length > 30);
+            }
+
+            // Filter out junk sentences (e.g. table of contents, pure numbers, headers, file paths)
+            sentences = sentences.filter(s => {
+                const lower = s.toLowerCase();
+                const numCount = (s.match(/\d/g) || []).length;
+                if (numCount > 5) return false; // Likely a table or data row
+                if (lower.startsWith('page ') || lower.startsWith('figure ') || lower.startsWith('table ') || lower.startsWith('chapter ')) return false;
+                if (lower.includes('...')) return false; // TOC
+                return true;
+            });
+
+            // Gather all big words as distractors for questions
+            const allWords = text.split(/[^\w]+/).filter(w => w.length > 5);
+            const distractorsPool = [...new Set(allWords)];
+
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            if (currentType === 'flashcards') {
+                document.getElementById('resultTitle').textContent = `Generated Flashcards (${selectedFile ? selectedFile.name : 'pasted text'})`;
+
+                // Smart Flashcard generation
+                const strictKeywords = [' is defined as ', ' refers to ', ' means ', ' is known as ', ' is called ', ' represents ', ' is the process of '];
+                const looseKeywords = [' is ', ' are '];
+
+                let flashcards = [];
+                let usedTerms = new Set();
+
+                // Phase 1: High quality definition keywords
+                sentences.forEach(sentence => {
+                    for (let kw of strictKeywords) {
+                        if (sentence.includes(kw)) {
+                            let parts = sentence.split(kw);
+                            let term = parts[0].trim();
+                            // Clean up leading "The ", "A ", "An " for the term
+                            term = term.replace(/^(The|A|An)\s+/i, '');
+                            let definition = parts.slice(1).join(kw).trim(); // in case the keyword appears twice
+
+                            // Ensure term is 1-5 words and definition makes sense
+                            if (term.split(' ').length <= 5 && term.length > 2 && definition.length > 10 && !usedTerms.has(term.toLowerCase())) {
+                                flashcards.push({
+                                    front: `<div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${term}</div>`,
+                                    back: `<div style="font-size: 1rem; line-height: 1.4;">...${kw.trim()} <b style="color: var(--text-primary);">${definition}</b></div>`
+                                });
+                                usedTerms.add(term.toLowerCase());
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                // Phase 2: Proper nouns + "is/are"
+                if (flashcards.length < 15) {
+                    sentences.forEach(sentence => {
+                        for (let kw of looseKeywords) {
+                            if (sentence.includes(kw)) {
+                                let parts = sentence.split(kw);
+                                let term = parts[0].trim();
+                                let definition = parts.slice(1).join(kw).trim();
+
+                                // Proper noun check: term starts with capital, 1-3 words
+                                if (term.split(' ').length <= 3 && term.length > 2 && definition.length > 15 && /^[A-Z]/.test(term) && !usedTerms.has(term.toLowerCase())) {
+                                    // Make sure it doesn't start with a pronoun or common starter
+                                    const badStarters = ['It', 'This', 'That', 'There', 'He', 'She', 'They', 'These', 'Those', 'Which', 'What'];
+                                    const firstWord = term.split(' ')[0];
+                                    if (!badStarters.includes(firstWord)) {
+                                        flashcards.push({
+                                            front: `<div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${term}</div>`,
+                                            back: `<div style="font-size: 1rem; line-height: 1.4;">...${kw.trim()} <b style="color: var(--text-primary);">${definition}</b></div>`
+                                        });
+                                        usedTerms.add(term.toLowerCase());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Phase 3: Fill-in-the-blank style for important words (Fallback)
+                if (flashcards.length === 0) {
+                    sentences.slice(0, 10).forEach(sentence => {
+                        const words = sentence.split(' ');
+                        let bestWord = "";
+                        let bestScore = -1;
+                        words.forEach(w => {
+                            let cleanW = w.replace(/[^a-zA-Z]/g, "");
+                            if (cleanW.length > bestScore && cleanW.length > 5) {
+                                bestScore = cleanW.length;
+                                bestWord = cleanW;
+                            }
+                        });
+
+                        if (bestWord) {
+                            let backTxt = sentence.replace(new RegExp('\\b' + bestWord + '\\b', 'gi'), '<span style="color: var(--primary); font-weight: 700;">' + bestWord + '</span>');
+                            flashcards.push({
+                                front: `<div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${bestWord}</div>`,
+                                back: `<div style="font-size: 1rem; line-height: 1.4; color: var(--text-primary);">${backTxt}</div>`
+                            });
+                        }
+                    });
+                }
+
+                // Show up to 15 cards
+                flashcards.slice(0, 15).forEach(card => {
+                    container.innerHTML += `
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    ${card.front}
+                                    <div style="position: absolute; bottom: 1rem; font-size: 0.75rem; color: var(--text-secondary);">Click to flip</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    ${card.back}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            } else {
+                document.getElementById('resultTitle').textContent = `Practice Questions (${selectedFile ? selectedFile.name : 'pasted text'})`;
+
+                // Only keep highly important sentences that contain a conceptual term
+                const scorableSentences = sentences.map(sentence => {
+                    const words = sentence.split(' ');
+                    let bestWord = "";
+                    let targetIndex = -1;
+                    let bestScore = -1;
+                    const importantEndings = ['tion', 'ment', 'ity', 'logy', 'ism', 'ics', 'ance', 'ence', 'ness', 'ing', 'ive'];
+
+                    words.forEach((w, i) => {
+                        if (i === 0 || i === words.length - 1) return;
+                        let cleanW = w.replace(/[^a-zA-Z]/g, "");
+                        if (cleanW.length < 5) return;
+
+                        let score = cleanW.length;
+                        if (cleanW[0] === cleanW[0].toUpperCase()) score += 15;
+                        importantEndings.forEach(end => {
+                            if (cleanW.toLowerCase().endsWith(end)) score += 20;
+                        });
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestWord = cleanW; // the clean answer
+                            targetIndex = i;
+                        }
+                    });
+
+                    return { sentence, bestWord, targetIndex, bestScore, words };
+                }).filter(s => s.bestScore >= 12); // Must hit a capitalized proper noun or a specific technical suffix.
+
+                // Select up to 10 random high-quality sentences
+                const selectedSentences = shuffle(scorableSentences).slice(0, 10);
+
+                selectedSentences.forEach((item, index) => {
+                    let { bestWord, targetIndex, words } = item;
+
+                    const originalWordWithPunctuation = words[targetIndex];
+                    words[targetIndex] = "________" + originalWordWithPunctuation.replace(/[a-zA-Z]/g, ""); // keep punctuation intact
+                    const questionText = words.join(' ');
+
+                    // Pick 3 smart distractors (matching suffix or similar length to be tricky)
+                    let sameSuffix = distractorsPool.filter(w =>
+                        w.toLowerCase() !== bestWord.toLowerCase() &&
+                        w.slice(-3) === bestWord.slice(-3) &&
+                        w.length > 4
+                    );
+
+                    let currentDistractors = [];
+                    if (sameSuffix.length >= 3) {
+                        currentDistractors = shuffle(sameSuffix).slice(0, 3);
+                    } else {
+                        currentDistractors = shuffle(distractorsPool.filter(w => w.toLowerCase() !== bestWord.toLowerCase())).slice(0, 3);
+                    }
+
+                    let options = [bestWord, ...currentDistractors];
+                    options = shuffle(options);
+
+                    const answerIndex = options.indexOf(bestWord);
+                    const qId = 'q' + index;
+
+                    let html = `
+                        <div class="result-item" id="container-${qId}">
+                            <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); line-height: 1.5;">${index + 1}. Based on the document: <br><span style="color: var(--text-secondary); font-weight: 500;">"${questionText}"</span></div>
+                            <div style="display: grid; gap: 0.5rem;">
+                    `;
+
+                    options.forEach((opt, optIndex) => {
+                        html += `<button class="option-btn" onclick="checkAnswer(this, ${optIndex === answerIndex}, '${qId}')">${opt}</button>`;
+                    });
+
+                    html += `</div></div>`;
+                    container.innerHTML += html;
+                });
+
+                if (selectedSentences.length === 0) {
+                    container.innerHTML = `<p style="color: var(--text-secondary);">Could not extract sufficient text to generate questions from this document.</p>`;
+                }
+            }
+        }
+
+        // Exposed globally for the inline onclick handler
+        window.checkAnswer = function (btn, isCorrect, containerId) {
+            const container = document.getElementById('container-' + containerId);
+            const buttons = container.querySelectorAll('.option-btn');
+
+            // disable all buttons in this question
+            buttons.forEach(b => {
+                b.style.pointerEvents = 'none';
+            });
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                btn.innerHTML += " ✅";
+            } else {
+                btn.classList.add('incorrect');
+                btn.innerHTML += " ❌";
+                // Show which one was actually correct
+                buttons.forEach(b => {
+                    if (b.getAttribute('onclick').includes(', true,')) {
+                        b.classList.add('correct');
+                        b.innerHTML += " ✅ (Correct Answer)";
+                    }
+                });
+            }
+        };
+
+        function resetGenerator() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('textContent').value = '';
+            document.getElementById('fileInput').value = '';
+            selectedFile = null;
+            extractedText = "";
+            dropZone.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📑</div>
+                <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Click or drag a PDF File</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">Only analyzing the EXACT contents of what you upload.</p>
+            `;
+        }
+    </script>
+</body>
+
+</html>

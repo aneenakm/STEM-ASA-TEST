@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On Line Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <img src="C:\Users\Hanna Farook\.gemini\antigravity\brain\c690d19b-53d9-4f27-9d24-993f7a9e3c23\stem_teacher_logo_1772608091153.png"
+                alt="STEM for Teachers" class="logo-img">
+            <img src="C:\Users\Hanna Farook\.gemini\antigravity\brain\c690d19b-53d9-4f27-9d24-993f7a9e3c23\asa_student_logo_1772608112824.png"
+                alt="ASA Program" class="logo-img">
+        </div>
+        <div class="nav-links">
+            <a href="login.html" class="btn btn-outline">Login</a>
+            <a href="register.html" class="btn btn-primary">Register</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h1>On Line Subject Examination</h1>
+            <p style="font-size: 1.25rem; max-width: 600px; margin: 0 auto;">
+                Empowering learners through structured assessment. Join the **STEM for Teachers** and **ASA Program for
+                Students** today.
+            </p>
+            <div style="margin-top: 3rem; margin-bottom: 4rem; display: flex; gap: 1rem; justify-content: center;">
+                <a href="register.html" class="btn btn-primary btn-lg"
+                    style="padding: 1rem 3rem; font-size: 1.1rem;">Get Started</a>
+                <a href="login.html" class="btn btn-outline btn-lg"
+                    style="padding: 1rem 3rem; font-size: 1.1rem;">Student Portal</a>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; color: var(--text-primary); margin-bottom: 0.5rem;">Explore Our Core
+                    Programs</h2>
+                <p style="color: var(--text-secondary);">Designed specifically for the next generation of educators and
+                    innovators.</p>
+            </div>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; text-align: left;">
+
+                <!-- STEM AD CARD -->
+                <div class="glass"
+                    style="padding: 2.5rem; border-top: 4px solid var(--accent-orange); transition: transform 0.3s; cursor: pointer;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'"
+                    onclick="window.location.href='register.html?program=stem'">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔬</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-primary);">STEM for Teachers
+                    </h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+                        Empowering educators with cutting-edge tools. The STEM for Teachers certification validates your
+                        proficiency in modern Science, Technology, Engineering, and Mathematics curriculum delivery.
+                    </p>
+                    <ul
+                        style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem; padding-left: 1.2rem;">
+                        <li>Advanced pedagogy methodologies</li>
+                        <li>AI-powered study/teaching agents</li>
+                        <li>Official Educator Certification</li>
+                    </ul>
+                    <a href="register.html" class="btn btn-outline"
+                        style="width: 100%; text-align: center; display: block; border-color: var(--accent-orange); color: var(--accent-orange);">Register
+                        as Teacher</a>
+                </div>
+
+                <!-- ASA AD CARD -->
+                <div class="glass"
+                    style="padding: 2.5rem; border-top: 4px solid var(--primary); transition: transform 0.3s; cursor: pointer;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'"
+                    onclick="window.location.href='register.html?program=asa'">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚀</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-primary);">ASA for Students
+                    </h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+                        The Advanced Student Assessment (ASA) program is built for driven learners. Prove your academic
+                        excellence through our rigorous, standardized examination system.
+                    </p>
+                    <ul
+                        style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem; padding-left: 1.2rem;">
+                        <li>Real-time automated scoring</li>
+                        <li>Personalized AI study flashcards</li>
+                        <li>Verifiable Digital Certificate</li>
+                    </ul>
+                    <a href="register.html" class="btn btn-primary"
+                        style="width: 100%; text-align: center; display: block;">Enroll as Student</a>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer
+        style="margin-top: auto; padding: 2rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+        &copy; 2026 Online Subject Examination System. All rights reserved.
+    </footer>
+</body>
+
+</html>

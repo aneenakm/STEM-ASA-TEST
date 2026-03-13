@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Question - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <a href="teacher_dashboard.html"
+                style="color: var(--text-primary); text-decoration: none; font-weight: 700;">← Back to
+                Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 800px;">
+        <div class="glass auth-card" style="max-width: 100%; margin: 2rem 0;">
+            <h2 style="margin-bottom: 2rem;">Add New Question</h2>
+
+            <form id="questionForm">
+                <div class="form-group">
+                    <label>Question Text</label>
+                    <textarea id="questionText" class="form-control" rows="3"
+                        placeholder="Enter question description..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Question Category</label>
+                    <select id="questionCategory" class="form-control" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="STEM">STEM (Teachers)</option>
+                        <option value="ASA">ASA (Students)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Question Type</label>
+                    <select id="questionType" class="form-control" onchange="toggleInputs()">
+                        <option value="mcq">Multiple Choice (4 options)</option>
+                        <option value="boolean">Yes / No</option>
+                    </select>
+                </div>
+
+                <div id="optionsContainer">
+                    <div class="form-group">
+                        <label>Option A</label>
+                        <input type="text" class="form-control opt" id="optA" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Option B</label>
+                        <input type="text" class="form-control opt" id="optB" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Option C</label>
+                        <input type="text" class="form-control opt" id="optC" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Option D</label>
+                        <input type="text" class="form-control opt" id="optD" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Correct Answer</label>
+                    <select id="correctAnswer" class="form-control" required>
+                        <!-- Options populated via JS -->
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;">Save
+                    Question</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const form = document.getElementById('questionForm');
+        const typeSelect = document.getElementById('questionType');
+        const correctSelect = document.getElementById('correctAnswer');
+        const container = document.getElementById('optionsContainer');
+
+        function toggleInputs() {
+            if (typeSelect.value === 'boolean') {
+                container.style.display = 'none';
+                document.querySelectorAll('.opt').forEach(i => i.required = false);
+                correctSelect.innerHTML = `
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                `;
+            } else {
+                container.style.display = 'block';
+                document.querySelectorAll('.opt').forEach(i => i.required = true);
+                correctSelect.innerHTML = `
+                    <option value="A">Option A</option>
+                    <option value="B">Option B</option>
+                    <option value="C">Option C</option>
+                    <option value="D">Option D</option>
+                `;
+            }
+        }
+
+        const editId = localStorage.getItem('editQuestionId');
+        if (editId) {
+            document.querySelector('h2').textContent = 'Edit Question';
+            const questions = JSON.parse(localStorage.getItem('questions') || '[]');
+            const q = questions.find(q => q.id == editId);
+            if (q) {
+                document.getElementById('questionText').value = q.text;
+                document.getElementById('questionCategory').value = q.category || '';
+                typeSelect.value = q.type;
+                toggleInputs();
+                if (q.type === 'mcq') {
+                    document.getElementById('optA').value = q.options.A;
+                    document.getElementById('optB').value = q.options.B;
+                    document.getElementById('optC').value = q.options.C;
+                    document.getElementById('optD').value = q.options.D;
+                }
+                correctSelect.value = q.correct;
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let questions = JSON.parse(localStorage.getItem('questions') || '[]');
+
+            const questionData = {
+                id: editId ? parseInt(editId) : Date.now(),
+                text: document.getElementById('questionText').value,
+                category: document.getElementById('questionCategory').value,
+                type: typeSelect.value,
+                correct: correctSelect.value,
+                options: typeSelect.value === 'mcq' ? {
+                    A: document.getElementById('optA').value,
+                    B: document.getElementById('optB').value,
+                    C: document.getElementById('optC').value,
+                    D: document.getElementById('optD').value
+                } : null
+            };
+
+            if (editId) {
+                questions = questions.map(q => q.id == editId ? questionData : q);
+                localStorage.removeItem('editQuestionId');
+            } else {
+                questions.push(questionData);
+            }
+
+            localStorage.setItem('questions', JSON.stringify(questions));
+            alert('Question saved!');
+            window.location.href = currentUser.role === 'admin' ? 'admin_dashboard.html' : 'teacher_dashboard.html';
+        });
+
+        toggleInputs(); // Initial call
+    </script>
+</body>
+
+</html>

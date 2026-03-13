@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam in Progress - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+</head>
+
+<body style="padding-top: 80px;">
+    <nav
+        style="position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
+        <div style="font-weight: 800; font-size: 1.2rem;">EXAM <span style="color: var(--primary);">ACTIVE</span></div>
+        <div id="timer" class="glass"
+            style="padding: 0.5rem 1.5rem; font-family: monospace; font-size: 1.5rem; color: var(--accent-orange); font-weight: bold; border-color: var(--accent-orange);">
+            60:00
+        </div>
+        <button onclick="manualSubmit()" class="btn btn-primary" style="padding: 0.5rem 1.5rem;">Submit Exam</button>
+    </nav>
+
+    <main class="container">
+        <div id="examContainer" style="max-width: 900px; margin: 0 auto;">
+            <!-- Questions injected here -->
+        </div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('currentUser')) || { role: 'student' };
+        const relevantCategory = user.role === 'teacher' ? 'STEM' : 'ASA';
+        const allQuestions = JSON.parse(localStorage.getItem('questions') || '[]');
+        let questions = allQuestions.filter(q => q.category === relevantCategory);
+
+        let timeLeft = 3600; // 60 minutes
+        let timerInterval;
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').textContent =
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmit();
+                }
+            }, 1000);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('examContainer');
+            container.innerHTML = questions.map((q, index) => `
+                <div class="glass" style="padding: 2rem; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;">Question ${index + 1}</h3>
+                    <p style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--text-primary);">${q.text}</p>
+                    <div style="display: grid; gap: 1rem;">
+                        ${q.type === 'mcq' ? renderMCQ(q, index) : renderBoolean(q, index)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMCQ(q, idx) {
+            return Object.entries(q.options).map(([key, val]) => `
+                <label class="glass" style="display: flex; align-items: center; padding: 1rem; cursor: pointer; border-radius: 12px; transition: var(--transition);">
+                    <input type="radio" name="q${idx}" value="${key}" style="margin-right: 1rem; width: 20px; height: 20px;">
+                    ${val}
+                </label>
+            `).join('');
+        }
+
+        function renderBoolean(q, idx) {
+            return ['Yes', 'No'].map(val => `
+                <label class="glass" style="display: flex; align-items: center; padding: 1rem; cursor: pointer; border-radius: 12px; transition: var(--transition);">
+                    <input type="radio" name="q${idx}" value="${val}" style="margin-right: 1rem; width: 20px; height: 20px;">
+                    ${val}
+                </label>
+            `).join('');
+        }
+
+        function collectAnswers() {
+            const answers = [];
+            questions.forEach((q, idx) => {
+                const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+                answers.push({
+                    id: q.id,
+                    selected: selected ? selected.value : null,
+                    correct: q.correct
+                });
+            });
+            return answers;
+        }
+
+        function autoSubmit() {
+            alert('Time is up! Your answers are being submitted.');
+            submitFlow();
+        }
+
+        function manualSubmit() {
+            if (confirm('Are you sure you want to submit your exam now?')) {
+                submitFlow();
+            }
+        }
+
+        function submitFlow() {
+            const finalAnswers = collectAnswers();
+            let score = 0;
+            finalAnswers.forEach(ans => {
+                if (ans.selected === ans.correct) score++;
+            });
+
+            const result = {
+                studentName: JSON.parse(localStorage.getItem('currentUser')).name,
+                course: JSON.parse(localStorage.getItem('currentUser')).course,
+                total: questions.length,
+                score: score,
+                percentage: ((score / questions.length) * 100).toFixed(1),
+                date: new Date().toLocaleDateString()
+            };
+
+            localStorage.setItem('lastResult', JSON.stringify(result));
+
+            // Log to global results for admin
+            const allResults = JSON.parse(localStorage.getItem('allResults') || '[]');
+            allResults.push(result);
+            localStorage.setItem('allResults', JSON.stringify(allResults));
+
+            window.location.href = 'result.html';
+        }
+
+        window.onload = () => {
+            renderQuestions();
+            startTimer();
+        };
+    </script>
+</body>
+
+</html>

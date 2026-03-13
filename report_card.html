@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Card - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css?v=6">
+    <style>
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .btn,
+            nav {
+                display: none;
+            }
+
+            .glass {
+                border: 1px solid #ddd;
+                background: none;
+                backdrop-filter: none;
+            }
+
+            .hero-title {
+                color: black !important;
+                -webkit-text-fill-color: black !important;
+            }
+
+            .container {
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo-group">
+            <span style="font-weight: 700;">OFFICIAL REPORT CARD</span>
+        </div>
+        <div class="nav-links">
+            <a href="certificate.html" id="certBtn" class="btn btn-primary"
+                style="display: none; background: #FFD700; color: #000; border: none; font-weight: 700;">🎓 View
+                Certificate</a>
+            <button onclick="window.print()" class="btn btn-primary">Download PDF / Print</button>
+            <a href="student_dashboard.html" class="btn btn-outline">Back to Portal</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="glass" style="padding: 4rem; max-width: 800px; margin: 2rem auto;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">CERTIFICATE OF COMPLETION</h1>
+                <p
+                    style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-orange); font-weight: bold;">
+                    Online Subject Examination</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+                <div>
+                    <label
+                        style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">STUDENT
+                        NAME</label>
+                    <div id="dispName"
+                        style="font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                        -</div>
+                </div>
+                <div>
+                    <label
+                        style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">COURSE
+                        NAME</label>
+                    <div id="dispCourse"
+                        style="font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                        STEM / ASA</div>
+                </div>
+                <div>
+                    <label
+                        style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">DATE
+                        OF EXAMINATION</label>
+                    <div id="dispDate"
+                        style="font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                        -</div>
+                </div>
+                <div>
+                    <label
+                        style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">BATCH
+                        ID</label>
+                    <div
+                        style="font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                        2026-XAM-04</div>
+                </div>
+            </div>
+
+            <div class="glass" style="padding: 2.5rem; background: rgba(255, 255, 255, 0.02); margin-bottom: 3rem;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th style="padding: 1rem 0;">ASSESSMENT CRITERIA</th>
+                            <th style="padding: 1rem 0; text-align: right;">DETAILS</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 1.1rem;">
+                        <tr style="border-bottom: 1px solid var(--glass-border);">
+                            <td style="padding: 1rem 0;">Total Marks Possible</td>
+                            <td style="padding: 1rem 0; text-align: right;" id="totalMarks">60</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--glass-border);">
+                            <td style="padding: 1rem 0;">Marks Scored</td>
+                            <td style="padding: 1rem 0; text-align: right; color: var(--accent-blue); font-weight: bold;"
+                                id="scoredMarks">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--glass-border);">
+                            <td style="padding: 1rem 0;">Percentage Achievement</td>
+                            <td style="padding: 1rem 0; text-align: right; font-weight: bold;" id="percent">-</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.5rem 0; font-weight: 700;">FINAL RESULT</td>
+                            <td style="padding: 1.5rem 0; text-align: right; font-weight: 800; font-size: 1.5rem;"
+                                id="finalResult">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4rem;">
+                <div style="text-align: center;">
+                    <div style="width: 150px; border-top: 1px solid var(--text-secondary); margin-bottom: 0.5rem;">
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Program Director</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 150px; border-top: 1px solid var(--text-secondary); margin-bottom: 0.5rem;">
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Examination Controller</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const result = JSON.parse(localStorage.getItem('lastResult'));
+
+        if (!user || !result) {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('dispName').textContent = user.name;
+        document.getElementById('dispDate').textContent = result.date;
+        document.getElementById('scoredMarks').textContent = result.score;
+        document.getElementById('percent').textContent = result.percentage + '%';
+        const pass = result.score >= 24;
+        document.getElementById('finalResult').textContent = pass ? 'PASS' : 'FAIL';
+        document.getElementById('finalResult').style.color = pass ? 'var(--success)' : 'var(--error)';
+
+        // Mock course assignment if not in user object
+        document.getElementById('dispCourse').textContent = user.course || 'GENERAL';
+
+        if (pass) {
+            document.getElementById('certBtn').style.display = 'inline-block';
+        }
+    </script>
+</body>
+
+</html>

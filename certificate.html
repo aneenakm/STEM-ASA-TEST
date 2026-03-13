@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate - Online Subject Examination</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .cert-container {
+            background: white;
+            width: 100%;
+            max-width: 1100px;
+            aspect-ratio: 1.414 / 1;
+            /* roughly A4 landscape */
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            background-color: #fcfcfc;
+            background-image: radial-gradient(circle at center, #ffffff 0%, #f4f6f8 100%);
+        }
+
+        .cert-border {
+            border: 8px solid #0f172a;
+            padding: 8px;
+            height: 100%;
+            position: relative;
+        }
+
+        .cert-inner {
+            border: 2px solid #0f172a;
+            height: 100%;
+            padding: 4rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Background Elements */
+        .cert-inner::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            border-radius: 50%;
+        }
+
+        .cert-inner::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 300px;
+            height: 300px;
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            border-radius: 50%;
+        }
+
+        .logo-area {
+            position: absolute;
+            top: 3rem;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        #certLogo {
+            font-size: 3.5rem;
+            background: #0f172a;
+            color: white;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #d4af37;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        h1.cert-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            color: #0f172a;
+            margin-top: 4rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .cert-subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .student-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            color: #d4af37;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 0.5rem;
+            margin: 1rem auto 2rem;
+            width: 70%;
+            font-style: italic;
+        }
+
+        .cert-awarded {
+            font-size: 1.15rem;
+            color: #475569;
+            line-height: 1.8;
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .cert-course {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.25rem;
+        }
+
+        .signatures {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 4rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .sig-block {
+            text-align: center;
+            width: 250px;
+        }
+
+        .sig-line {
+            border-bottom: 2px solid #0f172a;
+            height: 50px;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .sig-font {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 2rem;
+            color: rgba(15, 23, 42, 0.6);
+            white-space: nowrap;
+        }
+
+        .sig-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .sig-name {
+            font-family: 'Playfair Display', serif;
+            color: #475569;
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-top: 0.3rem;
+        }
+
+        .seal {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            background: #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            border: 4px dashed white;
+            z-index: 1;
+        }
+
+        .seal::after {
+            content: '★';
+            position: absolute;
+            font-size: 1.5rem;
+            bottom: 10px;
+        }
+
+        /* Web Controls */
+        .controls {
+            position: fixed;
+            top: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .cert-container {
+                box-shadow: none;
+                max-width: 100%;
+                width: 297mm;
+                /* A4 landscape width */
+                height: 210mm;
+                /* A4 landscape height */
+                margin: 0;
+                background-color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .controls {
+                display: none;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <button onclick="window.history.back()">← Return to Report Card</button>
+        <button onclick="window.print()"
+            style="background: #d4af37; color: black; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">🖨️ Print / Save
+            as PDF</button>
+    </div>
+
+    <div class="cert-container" id="certDOM">
+        <div class="cert-border">
+            <div class="cert-inner">
+                <div class="logo-area">
+                    <div id="certLogo">🔬</div>
+                </div>
+
+                <h1 class="cert-title">Certificate of Achievement</h1>
+                <div class="cert-subtitle">PROUDLY PRESENTED TO</div>
+
+                <div class="student-name" id="studentName">Student Name</div>
+
+                <div class="cert-awarded">
+                    This document certifies that the aforementioned student has successfully completed the required
+                    examinations and demonstrated exceptional proficiency in the
+                    <span class="cert-course" id="courseName">STEM</span>
+                    academic program. Awarded on this day, <span id="awardDate" style="font-weight: 600;"></span>.
+                </div>
+
+                <div class="seal" id="sealIcon">🏆</div>
+
+                <div class="signatures">
+                    <div class="sig-block">
+                        <div class="sig-line">
+                            <span class="sig-font" style="transform: translateX(-50%) rotate(-5deg);">Exam
+                                Controller</span>
+                        </div>
+                        <div class="sig-title">Examination Controller</div>
+                        <div class="sig-name">Academic Board</div>
+                    </div>
+                    <div class="sig-block" id="directorSigBlock">
+                        <div class="sig-line">
+                            <span class="sig-font" id="sigSignature"
+                                style="transform: translateX(-50%) rotate(-2deg);">Director</span>
+                        </div>
+                        <div class="sig-title" id="directorTitle">Program Director</div>
+                        <div class="sig-name" id="directorName">Official Name</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch User and Result
+        const user = JSON.parse(localStorage.getItem('currentUser')) || { name: 'Demo Student', course: 'STEM' };
+        const result = JSON.parse(localStorage.getItem('lastResult')) || { date: new Date().toLocaleDateString() };
+
+        document.getElementById('studentName').textContent = user.name;
+        document.getElementById('courseName').textContent = user.course || 'GENERAL PROGRAM';
+        document.getElementById('awardDate').textContent = result.date || new Date().toLocaleDateString();
+
+        // Custom Logic based on Program
+        const course = (user.course || 'STEM').toUpperCase();
+
+        if (course === 'ASA') {
+            document.getElementById('certLogo').innerHTML = '🚀';
+            document.getElementById('sealIcon').innerHTML = '⭐';
+            document.getElementById('directorName').textContent = 'Dr. Robert Jenkins';
+            document.getElementById('directorTitle').textContent = 'ASA Program Director';
+            document.getElementById('sigSignature').textContent = 'R. Jenkins';
+        } else {
+            // STEM or Default
+            document.getElementById('certLogo').innerHTML = '🔬';
+            document.getElementById('sealIcon').innerHTML = '🏆';
+            document.getElementById('directorName').textContent = 'Prof. Sarah Lin';
+            document.getElementById('directorTitle').textContent = 'STEM Program Director';
+            document.getElementById('sigSignature').textContent = 'Sarah Lin';
+        }
+    </script>
+</body>
+
+</html>

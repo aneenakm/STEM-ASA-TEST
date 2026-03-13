@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result - Online Subject Examination</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+        <div class="glass" style="padding: 4rem; text-align: center; max-width: 600px; width: 100%;">
+            <div id="resultIcon" style="font-size: 5rem; margin-bottom: 1rem;">🎉</div>
+            <h1 id="statusText" style="margin-bottom: 0.5rem; -webkit-text-fill-color: var(--text-primary);">PASS</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 2.5rem;">Examination Results Summary</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+                <div class="glass" style="padding: 1.5rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">SCORE</div>
+                    <div style="font-size: 2rem; font-weight: 800;" id="scoreDisplay">45/60</div>
+                </div>
+                <div class="glass" style="padding: 1.5rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">PERCENTAGE</div>
+                    <div style="font-size: 2rem; font-weight: 800;" id="percentDisplay">75%</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <a href="report_card.html" class="btn btn-primary" style="flex: 2;">View Detailed Report Card</a>
+                <a href="student_dashboard.html" class="btn btn-outline" style="flex: 1;">Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const result = JSON.parse(localStorage.getItem('lastResult'));
+        if (!result) window.location.href = 'student_dashboard.html';
+
+        const pass = result.score >= 24;
+        document.getElementById('statusText').textContent = pass ? 'PASS' : 'FAIL';
+        document.getElementById('statusText').style.color = pass ? 'var(--success)' : 'var(--error)';
+        document.getElementById('resultIcon').textContent = pass ? '🎉' : '❌';
+        document.getElementById('scoreDisplay').textContent = `${result.score}/${result.total}`;
+        document.getElementById('percentDisplay').textContent = `${result.percentage}%`;
+    </script>
+</body>
+
+</html>
